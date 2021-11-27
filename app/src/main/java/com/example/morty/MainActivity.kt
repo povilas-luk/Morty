@@ -1,72 +1,37 @@
 package com.example.morty
 
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.widget.AppCompatImageView
-import androidx.appcompat.widget.AppCompatTextView
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.squareup.picasso.Picasso
-
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import androidx.lifecycle.ViewModelProvider
+import com.airbnb.epoxy.EpoxyRecyclerView
 
 class MainActivity : AppCompatActivity() {
+
+    val viewModel: SharedViewModel by lazy {
+        ViewModelProvider(this)[SharedViewModel::class.java]
+    }
+
+    private val epoxyController = CharacterDetailsEpoxyController()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val nameTextView = findViewById<AppCompatTextView>(R.id.nameTextView)
-        val headerImageView = findViewById<AppCompatImageView>(R.id.headerImageView)
-        val genderImageView = findViewById<AppCompatImageView>(R.id.genderImageView)
-        val aliveTextView = findViewById<AppCompatTextView>(R.id.aliveTextView)
-        val originTextView = findViewById<AppCompatTextView>(R.id.originTextView)
-        val speciesTextView = findViewById<AppCompatTextView>(R.id.speciesTextView)
+        viewModel.characterByIdResponse.observe(this) { response ->
 
-        val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://rickandmortyapi.com/api/")
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
+            epoxyController.characterResponse = response
 
-        val rickAndMortyService: RickAndMortyService = retrofit.create(RickAndMortyService::class.java)
-
-        rickAndMortyService.getCharacterById(54).enqueue(object : Callback<GetCharacterByIdResponse> {
-            override fun onResponse(call: Call<GetCharacterByIdResponse>, response: Response<GetCharacterByIdResponse>) {
-                Log.i("MainActivity", response.toString())
-
-                if (!response.isSuccessful) {
-                    Toast.makeText(this@MainActivity, "Unsuccessful network call", Toast.LENGTH_SHORT).show()
-                    return
-                }
-
-                val body = response.body()!!
-
-                nameTextView.text = body.name
-                aliveTextView.text = body.status
-                originTextView.text = body.origin.name
-                speciesTextView.text = body.species
-
-                if (body.gender.equals("male", true)) {
-                    genderImageView.setImageResource(R.drawable.ic_male_24)
-                } else {
-                    genderImageView.setImageResource(R.drawable.ic_female_24)
-                }
-
-                Picasso.get().load(Uri.parse(body.image)).into(headerImageView)
-
+            if (response == null) {
+                Toast.makeText(this@MainActivity, "Unsuccessful network call", Toast.LENGTH_SHORT).show()
+                return@observe
             }
+        }
 
-            override fun onFailure(call: Call<GetCharacterByIdResponse>, t: Throwable) {
-                Log.i("MainActivity", t.message ?: "Null msg")
-            }
+        viewModel.refreshCharacter(54)
 
-        })
+        val epoxyRecyclerView = findViewById<EpoxyRecyclerView>(R.id.epoxyRecyclerView)
+        epoxyRecyclerView.setControllerAndBuildModels(epoxyController)
+
     }
 }

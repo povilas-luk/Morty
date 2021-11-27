@@ -5,6 +5,7 @@ plugins {
     id 'androidx.navigation.safeargs.kotlin'
 }
 
+//Epoxy
 kapt {
     correctErrorTypes = true
 }
@@ -59,6 +60,7 @@ dependencies {
     def epoxyVersion = "4.6.3"
     implementation "com.airbnb.android:epoxy:$epoxyVersion"
     kapt("com.airbnb.android:epoxy-processor:$epoxyVersion")
+    implementation "com.airbnb.android:epoxy-paging:$epoxyVersion"
 
     //Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -69,5 +71,12 @@ dependencies {
 
     //Picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
+
+    //ViewModel + Coroutines
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
+
+    //Paging
+    def paging_version = "3.1.0"
+    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
 
 }

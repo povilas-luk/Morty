@@ -1,4 +1,4 @@
-package com.example.morty
+package com.example.morty.network.response
 
 data class GetCharacterByIdResponse(
     val created: String = "",
